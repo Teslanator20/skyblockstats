@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SkyBlock Stats
 
-## Getting Started
+Statistik-Viewer für Hypixel SkyBlock — in der Machart von [sky.shiiyu.moe](https://sky.shiiyu.moe)
+und [skyprizm.com](https://skyprizm.com), aber mit eigener Berechnung direkt aus der offiziellen
+Hypixel API.
 
-First, run the development server:
+## Setup
 
 ```bash
+npm install
+cp .env.example .env.local   # HYPIXEL_API_KEY von https://developer.hypixel.net eintragen
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Aufrufen: `http://localhost:3000/stats/<Spielername>` oder `.../stats/<Spielername>/<Profilname>`
+(z. B. `/stats/Teslanator/Strawberry`). Ohne Profilnamen wird das aktuell gewählte Profil genutzt.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+JSON gibt es unter `/api/stats/<Spielername>[/<Profilname>]`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Was angezeigt wird
 
-## Learn More
+- **Kopfzeile** — Skin-Render, Hypixel-Rang, SkyBlock Level, Skill Average, Catacombs, Slayer-XP,
+  Networth, Coins, plus Profilwechsler (inkl. Ironman/Bingo/Stranded-Markierung)
+- **Skills** — alle Skills mit Level, Fortschritt und XP bis zum nächsten Level; Level-Caps werden
+  dynamisch bestimmt (Anita-Level für Farming, `extra_level_cap` z. B. für Foraging)
+- **Slayer** — Level, XP, Boss-Kills pro Tier für alle sechs Bosse
+- **Dungeons** — Catacombs-Level, Klassenlevel, Runs/Best Score/Fastest S+ je Floor (normal und
+  Master Mode), Secrets
+- **Mining** — Heart of the Mountain, Powder (aktuell/gesamt), Heart of the Forest, Tempel,
+  Glacite Mineshafts, Kristalle
+- **Ausrüstung** — Rüstung, Equipment, Waffen mit Original-Item-NBT (Name, Lore, Rarity, Sterne)
+- **Networth** — Gesamt, ohne Soulbound und aufgeschlüsselt nach Inventar, Pets, Museum, Säcken …
+- **Pets** — Level (inkl. 200er-Drachen), Rarity, gehaltenes Item
+- **Inhalte** — Crimson Isle/Kuudra, Trophy Fish, Shards, Safari-Critters, Minions, größte Säcke
+- **Inventare** — Inventar, Enderchest, Backpacks, Loadouts, Taschen und Vault als Item-Grid mit
+  Minecraft-Tooltip beim Hovern
 
-To learn more about Next.js, take a look at the following resources:
+## Item-Icons
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Die Icon-Quelle wird pro Item in dieser Reihenfolge bestimmt:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. `public/pack/<SKYBLOCK_ID>.png` — eigener Texture-Pack-Override (siehe `public/pack/README.md`)
+2. Kopf-Textur aus dem Item-NBT (`SkullOwner`)
+3. `skin`-Feld aus `/resources/skyblock/items` — deckt rund 2800 Items ab
+4. Vanilla-Textur des Materials; gefärbtes Leder wird mit `display.color` eingefärbt
+5. Initialen in Rarity-Farbe
 
-## Deploy on Vercel
+Grund für Schritt 5: Items wie Hotspot Radar, Abiphone oder Fischernetze sind in Vanilla schlicht
+`PAPER`. Ohne Texture-Pack sähen sie alle identisch aus — Initialen unterscheiden sie wenigstens.
+Für echte Grafiken einen Pack in `public/pack/` legen.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Technik
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 (App Router, Server Components) + Tailwind CSS 4
+- `prismarine-nbt` dekodiert die gzip/Base64-Item-Blobs der API
+- `skyhelper-networth` berechnet den Networth (inkl. Museum, sofern die API es hergibt)
+- Skin-Renders von crafatar, Kopf-Texturen von mc-heads, Item-Texturen aus den Vanilla-Assets
+- Antworten werden über `fetch`-Revalidierung gecacht (Profile 120 s, Ressourcen länger)
+
+## Hinweise
+
+- Die Hypixel-Profilstruktur ändert sich häufig. Aktuell gilt: Skill-XP unter
+  `player_data.experience.SKILL_*`, HOTM-XP unter `skill_tree.experience.mining`, Wardrobe wurde
+  durch `loadout` ersetzt. Beim Auslesen wird jeweils auch der alte Pfad als Fallback geprüft.
+- Wenn ein Spieler die Skills- oder Inventar-API deaktiviert hat, zeigt die Seite das als Hinweis
+  an, statt Nullwerte als echte Daten zu verkaufen.
+- Nicht mit Hypixel oder Mojang verbunden.
