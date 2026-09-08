@@ -11,7 +11,4 @@ npm run dev
 
 `/stats/Teslanator` oder `/stats/Teslanator/Strawberry`. Als JSON: `/api/stats/<name>[/<profil>]`.
 
-Eigene Item-Texturen: PNG als `public/pack/<SKYBLOCK_ID>.png` ablegen.
-
-Hat ein Spieler die Skills- oder Inventar-API aus, sagt die Seite das. Kein Bezug zu Hypixel
-oder Mojang.
+Kein Bezug zu Hypixel oder Mojang.
